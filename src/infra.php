@@ -1,5 +1,14 @@
 <?php
-require_once 'domain.php';
+require_once dirname(__FILE__) . '/domain.php';
+
+function createUrl($paramUrl): Url {
+    if (php_sapi_name() == 'cli-server') {
+        // built-in server bugfix
+        return new Url('https://' . str_replace('_', '.', $paramUrl));
+    } else {
+        return new Url('https://' . $paramUrl);
+    }
+}
 
 class CurlRepositoryImpl implements CurlRepository {
   function get(Url $url):CurlResponse {
@@ -19,29 +28,29 @@ class CurlRepositoryImpl implements CurlRepository {
       if ($errorNo !== CURLE_OK) {
           // 詳しくエラーハンドリングしたい場合はerrorNoで確認
           // タイムアウトの場合はCURLE_OPERATION_TIMEDOUT
-          return new CurlResponse(false, null);
+          return CurlResponse::failed();
       }
   
       // 200以外のステータスコードは失敗とみなし空配列を返す
       if ($info['http_code'] !== 200) {
-          return new CurlResponse(false, null);
+          return CurlResponse::failed();
       }
   
-      return new CurlResponse(true, new Body($result));
+      return CurlResponse::success(new Body($result));
   }
 }
 
 class CacheRepositoryImpl implements CacheRepository {
-  function convertFile(Url $url) {
+  function convertFile(Url $url):string {
       return './cache/' . md5($url->getValue());
   }
 
   function load(Url $url):CacheResponse {
       $result = file_get_contents($this->convertFile($url));
       if($result === false) {
-          return new CacheResponse(false, null);
+          return CacheResponse::failed();
       }
-      return new CacheResponse(true, new Body($result));
+      return CacheResponse::success(new Body($result));
 
   }
   function save(Url $url, Body $body) {

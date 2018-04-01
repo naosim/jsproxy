@@ -1,28 +1,46 @@
 <?php
 interface CurlRepository {
+  /**
+   * Return response from web.
+   * @return CurlResponse
+   */
   function get(Url $url):CurlResponse;
 }
-interface CacheRepository {
-  function load(Url $url):CacheResponse;
-  function save(Url $url, Body $body);
-}
-
 class CurlResponse {
   private $isSuccess;
   private $body;
-  public function __construct($isSuccess, Body $body) {
+  private function __construct($isSuccess, Body $body) {
     $this->isSuccess = $isSuccess;
     $this->body = $body;
   }
   public function getBody():Body {
+    if($this->body == null) {
+      throw new RuntimeException("body is null");
+    }
     return $this->body;
   }
 
   public function isSuccess():bool {
     return $this->isSuccess;
-  }  
+  }
+
+  public function isFailed():bool {
+    return !$this->isSuccess();
+  }
+
+  public static function success($body):CurlResponse {
+    return new CurlResponse(true, $body);
+  }
+
+  public static function failed():CurlResponse {
+    return new CurlResponse(false, null);
+  }
 }
 
+interface CacheRepository {
+  function load(Url $url):CacheResponse;
+  function save(Url $url, Body $body);
+}
 class CacheResponse {
   private $isSuccess;
   private $body;
@@ -31,12 +49,27 @@ class CacheResponse {
     $this->body = $body;
   }
   public function getBody():Body {
+    if($this->body == null) {
+      throw new RuntimeException("body is null");
+    }
     return $this->body;
   }
 
   public function isSuccess():bool {
     return $this->isSuccess;
-  }  
+  }
+
+  public function isFailed():bool {
+    return !$this->isSuccess();
+  }
+
+  public static function success($body):CacheResponse {
+    return new CacheResponse(true, $body);
+  }
+
+  public static function failed():CacheResponse {
+    return new CacheResponse(false, null);
+  } 
 }
 
 class StringVo {
@@ -49,11 +82,8 @@ class StringVo {
   }
 }
 
-class Url extends StringVo {
-}
-
-class Body extends StringVo {
-}
+class Url extends StringVo {}
+class Body extends StringVo {}
 
 class FindWebService {
   private $curlRepository;

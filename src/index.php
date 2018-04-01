@@ -1,21 +1,12 @@
 <?php
-require 'vendor/autoload.php';
-require_once 'domain.php';
-require_once 'infra.php';
+require dirname(__FILE__) . '/vendor/autoload.php';
+require_once dirname(__FILE__) . '/domain.php';
+require_once dirname(__FILE__) . '/infra.php';
 // Create and configure Slim app
 $config = ['settings' => [
     'addContentLengthHeader' => false,
 ]];
 $app = new \Slim\App($config);
-
-function createUrl($paramUrl): Url {
-    if (php_sapi_name() == 'cli-server') {
-        // built-in server bugfix
-        return new Url('https://' . str_replace('_', '.', $paramUrl));
-    } else {
-        return new Url('https://' . $paramUrl);
-    }
-}
 
 //gist_githubusercontent_com/naosim/9bee1004c76994752d21800777d2b09e/raw/DisplayOutMonitor_js
 $app->get('/web/{url:.*}', function ($request, $response, $args) {

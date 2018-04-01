@@ -1,0 +1,1 @@
+./vendor/bin/phpunit --coverage-html report tests/test
